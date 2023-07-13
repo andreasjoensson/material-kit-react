@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 import { Helmet } from 'react-helmet-async';
-import { filter } from 'lodash';
+import { filter, set } from 'lodash';
 import dayjs from 'dayjs';
 import { useState, useEffect } from 'react';
 // mock
@@ -51,6 +51,7 @@ const TABLE_HEAD = [
   { id: 'name', label: 'Name', alignRight: false },
   { id: 'company', label: 'Company', alignRight: false },
   { id: 'role', label: 'Role', alignRight: false },
+  { id: 'tid', label: 'Tid', alignRight: false },
   { id: 'ferie', label: 'Ferie', alignRight: false },
   { id: '' },
 ];
@@ -114,9 +115,9 @@ export default function UserPage() {
   const [orderBy, setOrderBy] = useState('name');
 
   const [filterName, setFilterName] = useState('');
+  const [hasFerie, setHasFerie] = useState(false);
 
   const [fuldtid, setFuldtid] = useState(false);
-  const [deltid, setDeltid] = useState(false);
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -131,6 +132,7 @@ export default function UserPage() {
   const handleOpen = () => setOpenModal(true);
   const handleClose = () => setOpenModal(false);
   const [location, setLocation] = useState('HM - København');
+  const [timer, setTimer] = useState(0);
 
   const [employees, setEmployees] = useState([
     {
@@ -210,9 +212,14 @@ export default function UserPage() {
         name,
         company: location,
         role,
-        ferie,
+        status: fuldtid ? 'Fuldtid' : 'Deltid',
+        time: !fuldtid && timer > 0 ? timer : null,
+        ferie: hasFerie ? ferie : null,
         avatarUrl,
       });
+
+      setEmployees([...employees, response.data]);
+
       console.log('Employee created:', response.data);
     } catch (error) {
       console.error('Failed to create employee:', error.response.data);
@@ -236,7 +243,14 @@ export default function UserPage() {
     const fetchEmployees = async () => {
       try {
         const response = await axios.get('http://localhost:5000/employees');
-        setEmployees(response.data);
+        const newEmployees = response.data.map((employee, i) => ({
+          ...employee,
+          id: i,
+        }));
+
+        console.log('newEmployees:', newEmployees);
+
+        setEmployees(newEmployees);
       } catch (error) {
         console.log('Failed to retrieve employees:', error);
         console.error('Failed to retrieve employees:', error.response.data);
@@ -291,21 +305,11 @@ export default function UserPage() {
   const isNotFound = !filteredUsers.length && !!filterName;
 
   const setToDeltid = () => {
-    if (fuldtid) {
-      console.log('cant');
-    } else {
-      setDeltid(true);
-      setFuldtid(false);
-    }
+    setFuldtid(false);
   };
 
   const setToFultid = () => {
-    if (deltid) {
-      console.log('cant');
-    } else {
-      setFuldtid(true);
-      setDeltid(false);
-    }
+    setFuldtid(true);
   };
 
   return (
@@ -359,17 +363,21 @@ export default function UserPage() {
               <FormLabel>Er du fuldtid eller deltid?</FormLabel>
               <FormGroup>
                 <FormControlLabel
-                  control={<Checkbox onChange={() => setToFultid()} value={fuldtid} defaultChecked />}
+                  control={<Checkbox onChange={() => setToFultid()} value={fuldtid} />}
                   label="Fuldtid"
                 />
-                <FormControlLabel control={<Checkbox onChange={() => setToDeltid()} value={deltid} />} label="Deltid" />
+                <FormControlLabel
+                  control={<Checkbox onChange={() => setToDeltid()} value={fuldtid} />}
+                  label="Deltid"
+                />
               </FormGroup>
 
-              {deltid == true ? (
+              {!fuldtid ? (
                 <div>
                   <FormLabel>Indtast timer om ugen</FormLabel>
                   <TextField
                     id="outlined-basic"
+                    value={timer}
                     onChange={(e) => setTimer(e.target.value)}
                     label="Timer"
                     variant="outlined"
@@ -387,15 +395,28 @@ export default function UserPage() {
 
               <FormLabel>Er på ferie?</FormLabel>
 
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DemoContainer components={['DateRangePicker']}>
-                  <DateRangePicker
-                    value={ferie}
-                    onChange={(newValue) => setFerie(newValue)}
-                    localeText={{ start: 'Check-in', end: 'Check-out' }}
-                  />
-                </DemoContainer>
-              </LocalizationProvider>
+              <FormGroup>
+                <FormControlLabel
+                  control={<Checkbox onChange={() => setHasFerie(true)} value={hasFerie} />}
+                  label="Ja"
+                />
+                <FormControlLabel
+                  control={<Checkbox onChange={() => setHasFerie(false)} value={hasFerie} />}
+                  label="Nej"
+                />
+              </FormGroup>
+
+              {hasFerie == true ? (
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DemoContainer components={['DateRangePicker']}>
+                    <DateRangePicker
+                      value={ferie}
+                      onChange={(newValue) => setFerie(newValue)}
+                      localeText={{ start: 'Check-in', end: 'Check-out' }}
+                    />
+                  </DemoContainer>
+                </LocalizationProvider>
+              ) : null}
 
               <Button onClick={createEmployee}>Opret medarbejder</Button>
             </FormControl>
@@ -419,7 +440,7 @@ export default function UserPage() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, role, ferie, company, avatarUrl, time } = row;
+                    const { id, name, role, ferie, status, company, avatarUrl, deltidsTimer } = row;
                     const selectedUser = selected.indexOf(name) !== -1;
 
                     return (
@@ -441,7 +462,20 @@ export default function UserPage() {
 
                         <TableCell align="left">{role}</TableCell>
 
-                        <TableCell align="left">{time}</TableCell>
+                        <TableCell align="left">
+                          <p>{status}</p>
+                          <span>
+                            {status == 'Deltid' ? (
+                              <div>
+                                <Label color="error">{deltidsTimer} timer</Label>
+                              </div>
+                            ) : (
+                              <div>
+                                <Label color="success">37 timer</Label>
+                              </div>
+                            )}
+                          </span>
+                        </TableCell>
 
                         <TableCell align="left">
                           {ferie ? (
