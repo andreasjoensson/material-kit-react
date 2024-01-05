@@ -18,7 +18,12 @@ const navConfig = [
   },
   {
     title: 'Vagtplan',
-    path: '/dashboard/products',
+    path: '/vagtplan/edit',
+    icon: icon('ic_user'),
+  },
+  {
+    title: 'Regler',
+    path: '/dashboard/regler',
     icon: icon('ic_cart'),
   },
 ];

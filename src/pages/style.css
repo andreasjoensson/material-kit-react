@@ -127,6 +127,11 @@
   padding-top: 5px;
   padding-bottom: 5px;
 }
+
+.droppable-active {
+  background-color: red;
+}
+
 .margin-10px-bottom {
   margin-bottom: 10px;
 }

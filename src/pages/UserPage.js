@@ -345,7 +345,7 @@ export default function UserPage() {
                 variant="outlined"
               />
 
-              <FormControl sx={marginTop} fullWidth>
+              <FormControl mb={3} sx={marginTop} fullWidth>
                 <InputLabel id="demo-simple-select-label">Lokation</InputLabel>
                 <Select
                   labelId="demo-simple-select-label"
@@ -360,7 +360,7 @@ export default function UserPage() {
                 </Select>
               </FormControl>
 
-              <FormLabel>Er du fuldtid eller deltid?</FormLabel>
+              <FormLabel sx={{ mt: 3 }}>Er du fuldtid eller deltid?</FormLabel>
               <FormGroup>
                 <FormControlLabel
                   control={<Checkbox onChange={() => setToFultid()} value={fuldtid} />}
@@ -373,9 +373,10 @@ export default function UserPage() {
               </FormGroup>
 
               {!fuldtid ? (
-                <div>
+                <div sx={{ mt: 3 }}>
                   <FormLabel>Indtast timer om ugen</FormLabel>
                   <TextField
+                    sx={{ mt: 2 }}
                     id="outlined-basic"
                     value={timer}
                     onChange={(e) => setTimer(e.target.value)}
@@ -385,7 +386,7 @@ export default function UserPage() {
                 </div>
               ) : null}
 
-              <FormLabel>Indtast stilling</FormLabel>
+              <FormLabel sx={{ mt: 3 }}>Indtast stilling</FormLabel>
               <TextField
                 id="outlined-basic"
                 onChange={(e) => setRole(e.target.value)}
@@ -393,7 +394,7 @@ export default function UserPage() {
                 variant="outlined"
               />
 
-              <FormLabel>Er på ferie?</FormLabel>
+              <FormLabel sx={{ mt: 3 }}>Er på ferie?</FormLabel>
 
               <FormGroup>
                 <FormControlLabel

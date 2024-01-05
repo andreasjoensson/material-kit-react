@@ -31,17 +31,18 @@ function Chat() {
   };
 
   return (
-    <Box sx={{ maxWidth: '600px', margin: '0 auto' }}>
+    <Box sx={{ maxWidth: '600px', minHeight: '80vh', margin: '0 auto', position: 'relative', background: '#' }}>
       {messages.map((message, index) => (
         <Typography key={index} variant="body1" gutterBottom>
           {message.user ? `User: ${message.user}` : `Bot: ${message.bot}`}
         </Typography>
       ))}
-      <Box sx={{ display: 'flex', marginTop: '16px' }}>
+      <Box sx={{ display: 'flex', position: 'absolute', bottom: 10, left: 30, marginTop: '16px' }}>
         <TextField
           id="outlined-basic"
           label="Type your message"
           variant="outlined"
+          sx={{ width: '100%', backgroundColor: 'white' }}
           fullWidth
           value={message}
           onChange={handleChange}
